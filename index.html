@@ -89,6 +89,17 @@
   .t + .t{margin-top:12px}
   .d + .t{margin-top:14px}
 
+  /* ══ 알림 배너 ══ */
+  .banner{padding:12px 20px;font-size:13.5px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;border-bottom:1px solid}
+  .banner.err{background:#FCEDEA;border-bottom-color:#EFCCC5;color:#8C2A1E}
+  .banner.warn{background:#FFF6E4;border-bottom-color:#EBD5A6;color:#7C5108}
+  .banner.ok{background:#E9F5EE;border-bottom-color:#B7DCC5;color:#14603A}
+  .banner .msg{flex:1;min-width:220px;line-height:1.55}
+  .banner .msg b{font-weight:800}
+  .banner .det{display:block;margin-top:5px;font-size:12px;opacity:.8;word-break:break-all;max-height:76px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .banner button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:6px;cursor:pointer;border:1px solid currentColor;background:rgba(255,255,255,.65);color:inherit}
+  .banner button:hover{background:#fff}
+
   /* ══ 배경·목적 / AI팀 ══ */
   .block.intro > h3::before{background:var(--amber-strong)}
   .intro .blockbody{padding:13px}
@@ -206,8 +217,13 @@
   <button class="btn" id="btnToday">오늘로</button>
   <span class="modebadge" id="modeBadge">보고 화면</span>
   <button class="btn editonly" id="btnSave">지금 저장</button>
+  <button class="btn editonly" id="btnExport">내보내기</button>
+  <button class="btn editonly" id="btnImport">가져오기</button>
+  <input type="file" id="fileIn" accept="application/json" style="display:none">
   <div id="saveState"></div>
 </div>
+
+<div id="banner"></div>
 
 <div class="boardwrap"><div class="board">
 
@@ -318,6 +334,33 @@ function parse(ds){const[y,m,d]=ds.split("-").map(Number);return new Date(y,m-1,
 function note(t){document.getElementById("saveState").textContent=t;}
 function korDate(ds){const[,m,d]=ds.split("-");return Number(m)+"월 "+Number(d)+"일";}
 
+/* ═══ 알림 배너 ═══ */
+function showBanner(kind,msg,detail,buttons){
+  const b=document.getElementById("banner");
+  b.className="banner "+kind; b.innerHTML="";
+  const m=document.createElement("div"); m.className="msg"; m.innerHTML=msg;
+  if(detail){ const d=document.createElement("span"); d.className="det"; d.textContent=detail; m.appendChild(d); }
+  b.appendChild(m);
+  (buttons||[]).forEach(cfg=>{
+    const btn=document.createElement("button"); btn.textContent=cfg.label;
+    btn.onclick=cfg.on; b.appendChild(btn);
+  });
+  const x=document.createElement("button"); x.textContent="닫기"; x.onclick=hideBanner; b.appendChild(x);
+}
+function hideBanner(){ const b=document.getElementById("banner"); b.className=""; b.innerHTML=""; }
+
+/* ═══ 로컬 사본 (서버가 실패해도 남는다) ═══ */
+const LS_KEY="bm2:localcopy";
+function saveLocal(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify({
+    savedAt:new Date().toISOString(), plan:PLAN, months:MONTHDATA
+  })); }catch(e){}
+}
+function readLocal(){
+  try{ const v=localStorage.getItem(LS_KEY); return v?JSON.parse(v):null; }catch(e){ return null; }
+}
+function clearLocal(){ try{ localStorage.removeItem(LS_KEY); }catch(e){} }
+
 /* ═══ 서버 ═══ */
 function editKey(){
   let k=sessionStorage.getItem("bm2key");
@@ -331,27 +374,129 @@ async function loadAll(){
     const j=await r.json();
     PLAN=Object.assign(blankPlan(), j.plan||{});
     MONTHDATA=j.months||{}; UPDATED=j.updatedAt||null;
-    note(""); return true;
-  }catch(e){ note("불러오기 실패"); return false; }
+    note("");
+    checkLocalNewer();
+    return true;
+  }catch(e){
+    note("불러오기 실패");
+    const local=readLocal();
+    if(local&&local.plan){
+      showBanner("warn",
+        "서버에서 불러오지 못해 <b>이 브라우저에 남아 있던 사본</b>을 띄웠습니다. 저장하기 전에 내용을 확인해 주세요.",
+        null,[]);
+      PLAN=Object.assign(blankPlan(), local.plan); MONTHDATA=local.months||{};
+    }
+    return false;
+  }
 }
-let saveTimer=null;
-function queueSave(){ if(!EDIT) return; note("입력 중…"); clearTimeout(saveTimer); saveTimer=setTimeout(flush,1500); }
-async function flush(){
+/* 서버보다 로컬 사본이 더 최신이면 = 저장 못 한 내용이 남아 있다는 뜻 */
+function checkLocalNewer(){
   if(!EDIT) return;
+  const local=readLocal(); if(!local||!local.plan) return;
+  if(UPDATED && new Date(local.savedAt)<=new Date(UPDATED)){ clearLocal(); return; }
+  showBanner("warn",
+    "<b>저장되지 않은 변경사항이 있습니다.</b> 마지막 입력 "+
+    new Date(local.savedAt).toLocaleString("ko-KR")+" 시점의 사본이 이 브라우저에 남아 있습니다.",
+    null,
+    [{label:"사본으로 되돌리기",on:()=>{
+        PLAN=Object.assign(blankPlan(), local.plan); MONTHDATA=local.months||{};
+        hideBanner(); redrawAll(); flush();
+      }},
+     {label:"사본 버리기",on:()=>{ clearLocal(); hideBanner(); }}]);
+}
+
+let saveTimer=null;
+function queueSave(){
+  if(!EDIT) return;
+  saveLocal();
+  note("입력 중…");
+  clearTimeout(saveTimer); saveTimer=setTimeout(()=>flush(),1500);
+}
+async function flush(attempt){
+  if(!EDIT) return;
+  attempt=attempt||1;
   clearTimeout(saveTimer); saveTimer=null;
+  saveLocal();
   const k=editKey(); if(!k){ note("저장 안 됨"); return; }
-  note("저장 중…");
+  note(attempt>1 ? "다시 시도 중… ("+attempt+"/4)" : "저장 중…");
   try{
     const r=await fetch("/api/data",{method:"POST",
       headers:{"Content-Type":"application/json","x-edit-key":k},
       body:JSON.stringify({plan:PLAN,months:MONTHDATA})});
-    const j=await r.json();
-    if(!r.ok){ if(r.status===401) sessionStorage.removeItem("bm2key"); note(j.error||"저장 실패"); return; }
-    UPDATED=j.updatedAt;
+    let j={}; try{ j=await r.json(); }catch(e){}
+    if(!r.ok){
+      if(r.status===401){
+        sessionStorage.removeItem("bm2key");
+        note("비밀번호 오류");
+        showBanner("err","입력 비밀번호가 맞지 않습니다. 아무 칸이나 다시 입력하면 비밀번호를 물어봅니다.",null,[]);
+        return;
+      }
+      /* 통신·서버 오류는 최대 4번까지 자동 재시도 */
+      if(attempt<4 && (r.status>=500||r.status===429)){
+        const wait=attempt*1500;
+        note("재시도 대기…");
+        setTimeout(()=>flush(attempt+1),wait);
+        return;
+      }
+      note("저장 실패");
+      showBanner("err",
+        "<b>서버에 저장하지 못했습니다.</b> 입력한 내용은 이 브라우저에 남아 있으니 창을 닫지 마세요. "+
+        "아래 <b>백업 내려받기</b>를 눌러 파일로 먼저 보관해 주세요.",
+        (j.detail||j.error||("HTTP "+r.status)),
+        [{label:"백업 내려받기",on:doExport},
+         {label:"다시 저장 시도",on:()=>{hideBanner();flush();}}]);
+      return;
+    }
+    UPDATED=j.updatedAt; clearLocal();
     const t=new Date(j.updatedAt);
     note("저장됨 "+String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0"));
-  }catch(e){ note("저장 실패 — 네트워크 확인"); }
+    hideBanner();
+  }catch(e){
+    if(attempt<4){ note("재시도 대기…"); setTimeout(()=>flush(attempt+1),attempt*1500); return; }
+    note("저장 실패");
+    showBanner("err",
+      "<b>서버에 연결하지 못했습니다.</b> 입력한 내용은 이 브라우저에 남아 있습니다. "+
+      "인터넷 연결을 확인한 뒤 다시 시도하거나, 백업 파일로 보관해 주세요.",
+      String(e&&e.message||e),
+      [{label:"백업 내려받기",on:doExport},
+       {label:"다시 저장 시도",on:()=>{hideBanner();flush();}}]);
+  }
 }
+
+/* ═══ 백업 파일 ═══ */
+function doExport(){
+  const blob=new Blob([JSON.stringify({plan:PLAN,months:MONTHDATA},null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="dailywork-"+todayStr()+".json";
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function wireBackupButtons(){
+  const ex=document.getElementById("btnExport"); if(ex) ex.onclick=doExport;
+  const im=document.getElementById("btnImport"); const fi=document.getElementById("fileIn");
+  if(im&&fi){
+    im.onclick=()=>fi.click();
+    fi.onchange=e=>{
+      const f=e.target.files[0]; if(!f) return;
+      const rd=new FileReader();
+      rd.onload=()=>{
+        try{
+          const j=JSON.parse(rd.result);
+          if(!j.plan) throw new Error("plan 항목이 없습니다");
+          PLAN=Object.assign(blankPlan(), j.plan); MONTHDATA=j.months||{};
+          redrawAll(); saveLocal();
+          showBanner("ok","백업 파일을 불러왔습니다. 내용을 확인한 뒤 <b>지금 저장</b>을 눌러 서버에 반영하세요.",null,
+            [{label:"바로 저장",on:()=>{hideBanner();flush();}}]);
+        }catch(err){
+          showBanner("err","백업 파일을 읽지 못했습니다.",String(err&&err.message||err),[]);
+        }
+        fi.value="";
+      };
+      rd.readAsText(f);
+    };
+  }
+}
+
 window.addEventListener("beforeunload",e=>{ if(EDIT&&saveTimer){ e.preventDefault(); e.returnValue=""; } });
 document.addEventListener("visibilitychange",async()=>{
   if(VIEW && document.visibilityState==="visible"){ await loadAll(); redrawAll(); }
@@ -667,6 +812,7 @@ async function boot(){
   document.getElementById("modeBadge").textContent=EDIT?"입력 모드":"보고 화면";
   await loadAll();
   document.getElementById("dateSel").value=sel;
+  wireBackupButtons();
   redrawAll();
   const sub=document.getElementById("subLine");
   if(EDIT) sub.textContent="\u2018-\u2019 로 시작하면 내용 · 이어서 엔터만 치면 같은 항목 · 빈 줄을 넣으면 다음 줄부터 다시 제목";
