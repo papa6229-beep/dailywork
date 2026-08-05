@@ -40,14 +40,52 @@
   .modebadge{font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:99px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22)}
 
   /* ══ 레이아웃 ══ */
-  .boardwrap{overflow-x:auto}
-  .board{display:grid;gap:16px;padding:16px;grid-template-columns:.86fr 1.5fr .9fr;align-items:start;min-width:1180px}
-  @media(max-width:700px){.board{grid-template-columns:1fr;min-width:0}}
-  .col{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(19,43,72,.05)}
-  .col > h2{margin:0;padding:14px 16px;font-size:16.5px;font-weight:800;letter-spacing:-.02em;background:var(--navy-2);color:#fff}
-  .col > h2 em{font-style:normal;color:#8FB0D4;font-weight:700;margin-right:7px}
-  .colbody{padding:14px;display:flex;flex-direction:column;gap:14px}
-  .colfoot{padding:9px 16px;font-size:12px;color:var(--faint);border-top:1px solid var(--line-soft);background:#FCFDFE}
+  .boardwrap{overflow-x:auto;overflow-y:visible}
+
+  /* 상단 전환 바 */
+  .navbar{display:flex;align-items:center;gap:8px;padding:12px 16px 0;flex-wrap:wrap}
+  .navbar button{font:inherit;font-size:13px;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--muted)}
+  .navbar button:hover{border-color:#AFC7E3;color:var(--navy)}
+  .navbar button.on{background:var(--navy-2);border-color:var(--navy-2);color:#fff}
+  .navbar .spacer{flex:1}
+  .navbar #btnLayout{color:var(--blue);border-color:#AFC7E3}
+
+  /* ── 나란히 보기(3단) ── */
+  .board.grid{display:grid;gap:16px;padding:16px;grid-template-columns:.86fr 1.5fr .9fr;align-items:start;min-width:1180px}
+  .board.grid .col.main{border-color:#C6D3E3;box-shadow:0 6px 20px rgba(19,43,72,.11)}
+  .board.grid .col.main > h2{font-size:18px;padding:16px 18px}
+  .board.grid .col.main .colbody{padding:16px;gap:15px}
+  .board.grid .col.side{background:#F7F9FC;border-color:#DEE4EC;box-shadow:none}
+  .board.grid .col.side > h2{background:#E3EAF3;color:var(--navy);font-size:14.5px;padding:11px 15px;border-bottom:1px solid #D2DCE8}
+  .board.grid .col.side > h2 em{color:#8098B4}
+  .board.grid .col.side .colbody{padding:12px;gap:11px}
+  .board.grid .col.side .block{border-color:#E2E8F0}
+  .board.grid .col.side .block > h3{background:#EDF2F7;font-size:13.5px;padding:9px 12px;border-bottom-color:#E2E8F0}
+  .board.grid .col.side .blockbody{padding:10px 11px}
+  .board.grid .col.side .t{font-size:13.5px}
+  .board.grid .col.side .d{font-size:12.5px;padding-left:12px}
+  .board.grid .col.side .colfoot{background:#F1F5F9}
+
+  /* ── 무대 보기(회전) ── */
+  .board.stage{position:relative;display:block;padding:18px 0 34px;margin:0 auto;
+    perspective:2200px;perspective-origin:50% 42%;min-width:0;transition:height .5s cubic-bezier(.25,.85,.3,1)}
+  .board.stage .col{
+    position:absolute;top:18px;left:50%;width:min(1060px,84vw);
+    transform:translate(-50%,0);transform-origin:50% 45%;
+    box-shadow:0 10px 34px rgba(19,43,72,.16);
+    transition:transform .55s cubic-bezier(.25,.85,.3,1),opacity .4s ease,filter .4s ease;
+    will-change:transform;
+  }
+  .board.stage .col > h2{font-size:18px;padding:16px 18px}
+  .board.stage .col .colbody{padding:16px;gap:15px}
+  .board.stage .col:not(.pos-center){
+    cursor:pointer;overflow:hidden;
+    -webkit-mask-image:linear-gradient(#000 72%,rgba(0,0,0,.15));
+    mask-image:linear-gradient(#000 72%,rgba(0,0,0,.15));
+  }
+  .board.stage .col:not(.pos-center) *{pointer-events:none}
+  .board.stage .col:not(.pos-center):hover{opacity:.78!important;filter:blur(1px)!important}
 
   /* ══ 블록 ══ */
   .block{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
@@ -187,6 +225,12 @@
   td.now{background:var(--amber-bg)!important;box-shadow:inset 0 0 0 2px var(--amber-strong)}
   td.now .t{color:#6E4708}
 
+  .board.stage .col .block > h3{font-size:15px;padding:10px 13px}
+  .board.stage .col .blockbody{padding:12px 13px}
+  .board.stage .col .t{font-size:15px}
+  .board.stage .col .d{font-size:14px;padding-left:13px}
+  .board.stage .col .d::before{top:9px;width:4px;height:4px}
+
   /* ══ 리스트 ══ */
   .rows{display:flex;flex-direction:column;gap:7px}
   .row{display:flex;align-items:flex-start;gap:7px}
@@ -268,7 +312,15 @@
 
 <div id="banner"></div>
 
-<div class="boardwrap"><div class="board">
+<div class="boardwrap">
+  <div class="navbar" id="panelNav">
+    <button type="button" data-go="0">A · 전체 현황</button>
+    <button type="button" data-go="1">B · 일일 업무</button>
+    <button type="button" data-go="2">C · 캘린더</button>
+    <span class="spacer"></span>
+    <button type="button" id="btnLayout">나란히 보기</button>
+  </div>
+  <div class="board stage" id="board">
 
   <!-- ══════ A ══════ -->
   <section class="col side">
@@ -627,7 +679,7 @@ function paintRich(box,text,opt){
 /* ═══ 높이 ═══ */
 function grow(el){ if(!el.offsetParent) return; el.style.height="auto"; el.style.height=(el.scrollHeight+2)+"px"; }
 function growAll(){ document.querySelectorAll("textarea.field").forEach(grow); }
-function scheduleGrow(){ requestAnimationFrame(()=>requestAnimationFrame(growAll)); }
+function scheduleGrow(){ requestAnimationFrame(()=>requestAnimationFrame(()=>{ growAll(); if(typeof layoutStage==="function") layoutStage(); })); }
 window.addEventListener("resize",()=>{clearTimeout(window.__rz);window.__rz=setTimeout(growAll,150);});
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(growAll);
 
@@ -878,8 +930,86 @@ function redrawAll(){
   scheduleGrow();
 }
 
+
+/* ═══ 무대형 레이아웃 ═══ */
+var panelIdx = 1;                       /* 0=A 1=B 2=C — 기본은 B */
+var STAGE = (localStorage.getItem("bm2:layout") !== "grid");
+
+function boardEl(){ return document.getElementById("board"); }
+function cols(){ return Array.prototype.slice.call(boardEl().querySelectorAll(".col")); }
+
+function layoutStage(){
+  const board=boardEl(); const cs=cols();
+  if(!STAGE){
+    board.classList.remove("stage"); board.classList.add("grid");
+    board.style.height="";
+    cs.forEach(c=>{ c.className=c.className.replace(/\s*pos-\w+/g,""); c.style.cssText=""; });
+    document.getElementById("panelNav").querySelectorAll("[data-go]").forEach(b=>b.classList.remove("on"));
+    document.getElementById("btnLayout").textContent="무대 보기";
+    return;
+  }
+  board.classList.add("stage"); board.classList.remove("grid");
+  document.getElementById("btnLayout").textContent="나란히 보기";
+
+  cs.forEach((c,i)=>{
+    const off=i-panelIdx, a=Math.abs(off);
+    c.classList.toggle("pos-center", off===0);
+    if(off===0){
+      c.style.transform="translate(-50%,0) scale(1) rotateY(0deg)";
+      c.style.opacity="1"; c.style.filter="none"; c.style.zIndex="6"; c.style.maxHeight="";
+    }else{
+      const shift = off*56 + (off>0?4:-4);
+      c.style.transform="translate(calc(-50% + "+shift+"%),0) scale("+(1-a*0.15)+") rotateY("+(-off*20)+"deg)";
+      c.style.opacity=String(Math.max(.22, .52-(a-1)*.18));
+      c.style.filter="blur("+(2.4*a)+"px)";
+      c.style.zIndex=String(6-a);
+    }
+  });
+
+  const active=cs[panelIdx];
+  const h=active ? active.offsetHeight : 600;
+  board.style.height=(h+52)+"px";
+  cs.forEach((c,i)=>{ if(i!==panelIdx) c.style.maxHeight=h+"px"; });
+
+  document.getElementById("panelNav").querySelectorAll("[data-go]").forEach((b,i)=>{
+    b.classList.toggle("on", i===panelIdx);
+  });
+}
+function goPanel(i){
+  panelIdx=Math.max(0,Math.min(cols().length-1,i));
+  layoutStage();
+  boardEl().scrollIntoView({block:"nearest",behavior:"smooth"});
+}
+
+document.getElementById("panelNav").querySelectorAll("[data-go]").forEach(b=>{
+  b.onclick=()=>goPanel(Number(b.dataset.go));
+});
+document.getElementById("btnLayout").onclick=()=>{
+  STAGE=!STAGE;
+  localStorage.setItem("bm2:layout", STAGE?"stage":"grid");
+  layoutStage(); setTimeout(layoutStage,60);
+};
+cols().forEach((c,i)=>{
+  c.addEventListener("click",e=>{
+    if(!STAGE) return;
+    if(i!==panelIdx){ e.preventDefault(); e.stopPropagation(); goPanel(i); }
+  },true);
+});
+document.addEventListener("keydown",e=>{
+  if(!STAGE) return;
+  const t=e.target.tagName;
+  if(t==="TEXTAREA"||t==="INPUT"||t==="SELECT") return;
+  if(e.key==="ArrowLeft") goPanel(panelIdx-1);
+  if(e.key==="ArrowRight") goPanel(panelIdx+1);
+});
+window.addEventListener("resize",()=>{clearTimeout(window.__lz);window.__lz=setTimeout(layoutStage,120);});
+if(window.ResizeObserver){
+  const ro=new ResizeObserver(()=>{clearTimeout(window.__ro);window.__ro=setTimeout(layoutStage,80);});
+  cols().forEach(c=>ro.observe(c));
+}
+
 document.querySelectorAll(".fold > h3").forEach(h=>{
-  h.onclick=()=>{ h.parentElement.classList.toggle("collapsed"); scheduleGrow(); };
+  h.onclick=()=>{ h.parentElement.classList.toggle("collapsed"); scheduleGrow(); setTimeout(layoutStage,30); };
 });
 
 document.getElementById("btnToday").onclick=()=>selectDate(todayStr());
@@ -893,6 +1023,7 @@ async function boot(){
   document.getElementById("dateSel").value=sel;
   wireBackupButtons();
   redrawAll();
+  layoutStage(); setTimeout(layoutStage,120); setTimeout(layoutStage,500);
   const sub=document.getElementById("subLine");
   if(EDIT) sub.textContent="\u2018-\u2019 로 시작하면 내용 · 이어서 엔터만 치면 같은 항목 · 빈 줄을 넣으면 다음 줄부터 다시 제목";
   else sub.textContent = UPDATED
