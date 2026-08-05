@@ -89,6 +89,26 @@
   .t + .t{margin-top:12px}
   .d + .t{margin-top:14px}
 
+  /* ══ 배경·목적 / AI팀 ══ */
+  .block.intro > h3::before{background:var(--amber-strong)}
+  .intro .blockbody{padding:13px}
+  #f_aiintro .disp{padding:0 0 10px 0;border:none}
+  #f_aiintro .disp:hover{background:transparent}
+  #f_aiintro .t{font-size:14px;font-weight:600;color:var(--ink-2);letter-spacing:-.01em}
+  .teams{display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--line-soft);padding-top:11px}
+  .team{display:flex;gap:9px;align-items:flex-start}
+  .team .nm{flex:0 0 128px;font-size:13px;font-weight:800;text-align:center;padding:9px 6px;border-radius:7px;border:1px solid var(--line);line-height:1.4}
+  .team .nm:focus{box-shadow:0 0 0 3px rgba(29,87,152,.13)}
+  .team .wk{flex:1;min-width:0}
+  .team .wk .t{font-size:13.5px;font-weight:600;color:var(--ink-2)}
+  .team .wk .d{font-size:13.5px}
+  .team.c0 .nm{background:#FDF3E3;border-color:#EBD5A6;color:#8A5A0C}
+  .team.c1 .nm{background:#E9F0FA;border-color:#BFD6EE;color:#1D5798}
+  .team.c2 .nm{background:#E5F3EB;border-color:#B2DAC2;color:#186A41}
+  .team.c3 .nm{background:#EFEDF9;border-color:#D0CAEC;color:#5B4B9E}
+  .team.c4 .nm{background:#FBEDEA;border-color:#E7BEB7;color:#A03123}
+  .team.c5 .nm{background:#FBF6DC;border-color:#E3D793;color:#7A6510}
+
   /* ══ 지표 ══ */
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
   .stat{border:1px solid var(--line);border-radius:9px;padding:11px 8px;text-align:center;background:#FCFDFE}
@@ -195,6 +215,20 @@
   <section class="col">
     <h2><em>A</em>전체 현황과 경영 요약</h2>
     <div class="colbody">
+      <div class="block intro">
+        <h3>1. 작업 배경 및 목적</h3>
+        <div class="blockbody"><div id="f_purpose"></div></div>
+      </div>
+
+      <div class="block intro">
+        <h3>2. AI 운영 시스템이 하는 일 <span class="hint">베타 운영 중 · 팀별 업무 맞춤 커스텀 가능</span></h3>
+        <div class="blockbody">
+          <div id="f_aiintro"></div>
+          <div class="teams" id="teamRows"></div>
+          <button class="add" id="addTeam">+ AI팀 추가</button>
+        </div>
+      </div>
+
       <div class="stats">
         <div class="stat"><div class="k">현재 단계</div><textarea class="field" id="f_stage" rows="1" placeholder="입력"></textarea></div>
         <div class="stat"><div class="k">목표 오픈</div><textarea class="field" id="f_open" rows="1" placeholder="입력"></textarea></div>
@@ -216,7 +250,7 @@
         <div class="blockbody"><div class="rows" id="supportRows"></div><button class="add" data-add="support">+ 요청 추가</button></div>
       </div>
     </div>
-    <div class="colfoot">전체 현황 · 주간 타임테이블 · 지원 요청</div>
+    <div class="colfoot">배경·목적 · AI팀 역할 · 전체 현황 · 주간 타임테이블</div>
   </section>
 
   <!-- ══════ B ══════ -->
@@ -261,26 +295,8 @@
         <div class="blockbody"><div id="recap"></div></div>
       </div>
 
-      <div class="block">
-        <h3>이번 주 집계 및 달성률</h3>
-        <div class="blockbody">
-          <div class="cnt" id="wkCnt">기록 <b>0</b>건 중 완료 <b>0</b>건</div>
-          <div class="gauge"><div class="bar"><i id="wkBar" style="width:0%"></i></div><div class="pct num" id="wkPct">0%</div></div>
-        </div>
-      </div>
-
-      <div class="block">
-        <h3>이번 달 집계 및 달성률 <span class="hint">목표 수는 직접 입력</span></h3>
-        <div class="blockbody">
-          <div class="cnt">월간 핵심 목표
-            <b><textarea class="field num" id="f_goal" rows="1" style="display:inline-block;width:48px;text-align:center;padding:2px 4px;font-weight:800"></textarea></b>개 중
-            완료 <b class="num" id="moDone">0</b>개
-          </div>
-          <div class="gauge"><div class="bar"><i id="moBar" style="width:0%"></i></div><div class="pct num" id="moPct">0%</div></div>
-        </div>
-      </div>
     </div>
-    <div class="colfoot">날짜별 조회 · 주간 집계 · 월간 집계</div>
+    <div class="colfoot">달력에서 날짜를 누르면 그 날의 기록이 표시됩니다</div>
   </section>
 
 </div></div>
@@ -290,7 +306,7 @@ var EDIT = new URLSearchParams(location.search).get("edit") === "1";
 var VIEW = !EDIT;
 
 const MONTHS=[7,8,9,10,11,12];
-const blankPlan=()=>({stage:"",open:"",summary:"",tt:{},support:[],goals:{}});
+const blankPlan=()=>({stage:"",open:"",summary:"",tt:{},support:[],goals:{},purpose:"",aiIntro:"",aiTeams:[]});
 const blankDay =()=>({plan:[],done:[],note:"",next:[],risk:""});
 let PLAN=blankPlan(), MONTHDATA={}, UPDATED=null;
 let sel=todayStr(), calCursor=sel.slice(0,7);
@@ -494,6 +510,40 @@ document.querySelectorAll("[data-add]").forEach(b=>{
   };
 });
 
+/* ═══ AI 운영 시스템이 하는 일 ═══ */
+function renderTeams(){
+  const box=document.getElementById("teamRows"); box.innerHTML="";
+  PLAN.aiTeams = PLAN.aiTeams || [];
+  const arr=PLAN.aiTeams;
+  if(!arr.length){
+    const e=document.createElement("div"); e.className="empty";
+    e.textContent = EDIT ? "아래에서 AI팀을 추가하세요." : "등록된 AI팀이 없습니다.";
+    box.appendChild(e); return;
+  }
+  arr.forEach((it,i)=>{
+    const row=document.createElement("div"); row.className="team c"+(i%6);
+    const nm=document.createElement("textarea");
+    nm.className="field nm"; nm.rows=1; nm.placeholder=VIEW?"":"팀 이름";
+    row.appendChild(nm);
+    const host=document.createElement("div"); row.appendChild(host);
+    bindField(nm,()=>it.name,v=>{it.name=v;});
+    buildRich(host,{cls:"wk",ph:"이 팀이 맡는 일",get:()=>it.work,set:v=>{it.work=v;}});
+    const del=document.createElement("button");
+    del.className="del"; del.textContent="×"; del.title="이 팀 삭제";
+    del.onclick=()=>{arr.splice(i,1);queueSave();renderTeams();};
+    row.appendChild(del);
+    box.appendChild(row);
+  });
+  scheduleGrow();
+}
+document.getElementById("addTeam").onclick=()=>{
+  PLAN.aiTeams = PLAN.aiTeams || [];
+  PLAN.aiTeams.push({name:"",work:""});
+  queueSave(); renderTeams();
+  const last=document.getElementById("teamRows").querySelector(".team:last-child .nm");
+  if(last) last.focus();
+};
+
 /* ═══ 달력 ═══ */
 function buildCal(){
   const[y,m]=calCursor.split("-").map(Number);
@@ -570,33 +620,10 @@ function renderRecap(){
 }
 
 /* ═══ 집계 ═══ */
-function weekRange(ds){
-  const d=parse(ds),off=(d.getDay()+6)%7,mon=new Date(d);
-  mon.setDate(d.getDate()-off);
-  return Array.from({length:7},(_,i)=>{const x=new Date(mon);x.setDate(mon.getDate()+i);return ymd(x);});
-}
 function recalc(){
   const D=day(sel);
   document.getElementById("v_today").textContent=D.done.filter(x=>x.text&&x.state==="완료").length+"건";
   document.getElementById("v_support").textContent=PLAN.support.filter(x=>x.text&&x.state!=="완료").length+"건";
-
-  let tot=0,fin=0;
-  weekRange(sel).forEach(ds=>{
-    const r=peek(ds); if(!r) return;
-    (r.done||[]).forEach(x=>{ if(!x.text) return; tot++; if(x.state==="완료") fin++; });
-  });
-  const wp=tot?Math.round(fin/tot*100):0;
-  document.getElementById("wkCnt").innerHTML="기록 <b>"+tot+"</b>건 중 완료 <b>"+fin+"</b>건";
-  document.getElementById("wkBar").style.width=wp+"%";
-  document.getElementById("wkPct").textContent=wp+"%";
-
-  const mk=mkey(sel), goal=parseInt(PLAN.goals[mk]||"",10), mdays=MONTHDATA[mk]||{};
-  let mdone=0;
-  Object.keys(mdays).forEach(ds=>(mdays[ds].done||[]).forEach(x=>{if(x.text&&x.state==="완료")mdone++;}));
-  document.getElementById("moDone").textContent=mdone;
-  const mp=goal>0?Math.round(Math.min(mdone/goal,1)*100):0;
-  document.getElementById("moBar").style.width=mp+"%";
-  document.getElementById("moPct").textContent=mp+"%";
 }
 
 /* ═══ 렌더 ═══ */
@@ -617,8 +644,16 @@ function renderDay(){
 function redrawAll(){
   bindField(document.getElementById("f_stage"),()=>PLAN.stage,v=>{PLAN.stage=v;});
   bindField(document.getElementById("f_open"), ()=>PLAN.open, v=>{PLAN.open=v;});
-  bindField(document.getElementById("f_goal"), ()=>PLAN.goals[mkey(sel)],v=>{PLAN.goals[mkey(sel)]=v;recalc();});
-  buildRich(document.getElementById("f_summary"),{ph:"예: 7월 기반 구축 → 8월 실전 검증 → 12월 정식 오픈",get:()=>PLAN.summary,set:v=>{PLAN.summary=v;}});
+  buildRich(document.getElementById("f_purpose"),{
+    ph:"왜 만드는가 / 도입하는 이유 / 더 큰 그림 — 제목 줄을 적고 세부 내용은 - 로 시작하세요.",
+    get:()=>PLAN.purpose,set:v=>{PLAN.purpose=v;}});
+  buildRich(document.getElementById("f_aiintro"),{
+    ph:"이 시스템이 무엇을 하는지 한두 줄로 적습니다.",
+    get:()=>PLAN.aiIntro,set:v=>{PLAN.aiIntro=v;}});
+  buildRich(document.getElementById("f_summary"),{
+    ph:"예: 7월 기반 구축 → 8월 실전 검증 → 12월 정식 오픈",
+    get:()=>PLAN.summary,set:v=>{PLAN.summary=v;}});
+  renderTeams();
   buildTT(); renderDay(); renderRows("support"); buildCal(); recalc(); renderRecap();
   scheduleGrow();
 }
