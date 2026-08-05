@@ -7,9 +7,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   :root{
-    --ink:#111A26; --ink-2:#39465A; --muted:#5D6B7D; --faint:#8494A6;
-    --navy:#132B48;
-    --paper:#EDF0F4; --card:#FFFFFF; --line:#DCE2EA; --line-soft:#E9EDF2; --wash:#F5F8FB;
+    --ink:#0F1826; --ink-2:#374558; --muted:#5A6879; --faint:#8091A4;
+    --navy:#16233D;
+    --paper:#F1F5FA; --card:#FFFFFF; --line:#D8E0EA; --line-soft:#E7ECF3; --wash:#F8FAFD;
     --amber:#A96D0D; --amber-bg:#FFF5E2; --amber-line:#E9C68A; --amber-strong:#D99A22;
     --blue:#1D5798; --blue-bg:#E9F0FA;
     --green:#186A41; --green-bg:#E5F3EB;
@@ -55,9 +55,9 @@
 
   .col{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;
     box-shadow:0 1px 3px rgba(19,43,72,.07)}
-  .col.ca{--accent:#34506F;--accent-2:#9DB3CB;--accent-bg:#EFF3F8;--accent-line:#D3DEEA}
-  .col.cb{--accent:#15294A;--accent-2:#8AA6C6;--accent-bg:#EAEFF6;--accent-line:#CBD8E8}
-  .col.cc{--accent:#4C6382;--accent-2:#AFC0D3;--accent-bg:#F1F4F9;--accent-line:#D8E1EB}
+  .col.ca{--accent:#0B6FA4;--accent-2:#7FC4E8;--accent-bg:#E7F4FC;--accent-line:#BEDFF2}
+  .col.cb{--accent:#1B4ED0;--accent-2:#9DBAFF;--accent-bg:#E9F0FF;--accent-line:#C6D8FB}
+  .col.cc{--accent:#4C46C9;--accent-2:#ADA8F5;--accent-bg:#EDEBFE;--accent-line:#CFCAF9}
   .col > h2{margin:0;padding:14px 16px;font-size:16.5px;font-weight:800;letter-spacing:-.02em;
     background:var(--accent);color:#fff}
   .col > h2 em{font-style:normal;color:var(--accent-2);font-weight:700;margin-right:7px}
@@ -66,7 +66,7 @@
 
   .block{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
   .block > h3{margin:0;padding:10px 13px;font-size:15px;font-weight:800;color:var(--ink);
-    background:var(--wash);border-bottom:1px solid var(--line-soft);
+    background:#F7FAFD;border-bottom:1px solid var(--line-soft);
     display:flex;align-items:center;gap:8px;letter-spacing:-.02em}
   .block > h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--accent);flex:0 0 auto}
   .block > h3 .hint{margin-left:auto;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0}
@@ -84,7 +84,7 @@
   .field{display:block;width:100%;font:inherit;font-size:14px;color:var(--ink);line-height:1.6;
     border:1px solid transparent;border-radius:6px;background:transparent;padding:6px 8px;resize:none;overflow:hidden}
   .field:hover{background:var(--wash);border-color:#E1E7EF;cursor:text}
-  .field:focus{outline:none;background:#fff;border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,87,152,.13)}
+  .field:focus{outline:none;background:#fff;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
   .field::placeholder{color:var(--faint);font-weight:400}
 
   .fw{position:relative}
@@ -115,9 +115,9 @@
   table.tt th,table.tt td{padding:0;vertical-align:top;border:none;border-bottom:1px solid #EDF1F6}
   table.tt tr:last-child th,table.tt tr:last-child td{border-bottom:none}
   table.tt th.mo{width:44px;font-size:14px;font-weight:800;color:var(--accent);text-align:center;
-    background:#F1F5F9;border-right:1px solid #DDE5EE;border-bottom:1px solid #DDE5EE;vertical-align:middle}
+    background:var(--accent-bg);border-right:1px solid var(--accent-line);border-bottom:1px solid var(--accent-line);vertical-align:middle}
   table.tt th.wk{width:36px;font-size:11px;font-weight:700;color:var(--faint);text-align:center;
-    padding:10px 0 0;background:#FAFBFD;border-right:1px solid #EDF1F6}
+    padding:10px 0 0;background:#FBFDFF;border-right:1px solid #EAF0F6}
   table.tt td .fw .disp{min-height:34px;border-radius:0;padding:8px 9px}
   table.tt td .field{border-radius:0;padding:8px 9px;font-size:13px;line-height:1.55}
   table.tt td .t{font-size:13px;font-weight:700;line-height:1.45}
