@@ -1,4 +1,4 @@
-import { put, list } from "@vercel/blob";
+import { put, get } from "@vercel/blob";
 
 export const maxDuration = 25;
 
@@ -12,18 +12,18 @@ function withTimeout(p, ms, label) {
 }
 
 async function readState() {
-  const { blobs } = await withTimeout(list({ prefix: PATH, limit: 1 }), 8000, "목록 조회");
-  if (!blobs.length) return null;
-  const r = await withTimeout(fetch(blobs[0].url + "?t=" + Date.now(), { cache: "no-store" }), 8000, "본문 읽기");
-  if (!r.ok) throw new Error("본문 HTTP " + r.status);
-  return await r.json();
+  /* useCache:false → 방금 저장한 내용이 바로 반영된다 */
+  const r = await withTimeout(get(PATH, { access: "private", useCache: false }), 9000, "읽기");
+  if (!r || !r.stream) return null;
+  const text = await new Response(r.stream).text();
+  return JSON.parse(text);
 }
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return res.status(500).json({ error: "저장소가 연결되지 않았습니다. 버셀 Storage에서 Blob을 만들고 이 프로젝트에 Connect한 뒤 재배포해 주세요." });
+    return res.status(500).json({ error: "저장소가 연결되지 않았습니다. Storage에서 Blob을 이 프로젝트에 Connect한 뒤 재배포해 주세요." });
   }
 
   try {
@@ -60,11 +60,10 @@ export default async function handler(req, res) {
       }
 
       await withTimeout(put(PATH, text, {
-        access: "public",
+        access: "private",
         contentType: "application/json",
         addRandomSuffix: false,
         allowOverwrite: true,
-        cacheControlMaxAge: 0,
       }), 12000, "저장");
 
       return res.status(200).json({ ok: true, updatedAt: payload.updatedAt });
