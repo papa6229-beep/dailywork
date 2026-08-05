@@ -41,7 +41,7 @@
 
   /* ══ 레이아웃 ══ */
   .boardwrap{overflow-x:auto}
-  .board{display:grid;gap:16px;padding:16px;grid-template-columns:1.15fr 1.05fr .95fr;align-items:start;min-width:1120px}
+  .board{display:grid;gap:16px;padding:16px;grid-template-columns:.86fr 1.5fr .9fr;align-items:start;min-width:1180px}
   @media(max-width:700px){.board{grid-template-columns:1fr;min-width:0}}
   .col{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(19,43,72,.05)}
   .col > h2{margin:0;padding:14px 16px;font-size:16.5px;font-weight:800;letter-spacing:-.02em;background:var(--navy-2);color:#fff}
@@ -62,6 +62,41 @@
   .block.recap{border-color:#D6D1EC}
   .block.recap > h3{background:var(--violet-bg);border-bottom-color:#D6D1EC;color:var(--violet)}
   .block.recap > h3::before{background:var(--violet)}
+
+
+  /* ══ 열 서열: 가운데가 본문, 양옆은 보조 ══ */
+  .col.main{border-color:#C6D3E3;box-shadow:0 6px 20px rgba(19,43,72,.11)}
+  .col.main > h2{font-size:18px;padding:16px 18px}
+  .col.main .colbody{padding:16px;gap:15px}
+
+  .col.side{background:#F7F9FC;border-color:#DEE4EC;box-shadow:none}
+  .col.side > h2{background:#E3EAF3;color:var(--navy);font-size:14.5px;padding:11px 15px;border-bottom:1px solid #D2DCE8}
+  .col.side > h2 em{color:#8098B4}
+  .col.side .colbody{padding:12px;gap:11px}
+  .col.side .block{border-color:#E2E8F0}
+  .col.side .block > h3{background:#EDF2F7;font-size:13.5px;padding:9px 12px;border-bottom-color:#E2E8F0}
+  .col.side .block > h3::before{height:13px}
+  .col.side .blockbody{padding:10px 11px}
+  .col.side .t{font-size:13.5px}
+  .col.side .d{font-size:12.5px;padding-left:12px}
+  .col.side .d::before{top:8px;width:3px;height:3px}
+  .col.side .colfoot{background:#F1F5F9}
+
+  /* B 안의 핵심 블록 */
+  .block.key{border-color:var(--navy-2)}
+  .block.key > h3{background:var(--navy-2);color:#fff;border-bottom-color:var(--navy-2);font-size:15.5px}
+  .block.key > h3::before{background:#8FB0D4}
+  .block.key > h3 .hint{color:#B6C9DE}
+  .col.main .block > h3{font-size:15px}
+  .col.main .t{font-size:15px}
+  .col.main .d{font-size:14px}
+
+  /* 접기 */
+  .fold > h3{cursor:pointer;user-select:none}
+  .fold > h3:hover{background:#E4EAF2}
+  .fold > h3::after{content:"⌄";margin-left:8px;font-size:14px;line-height:1;color:var(--muted);transition:transform .18s}
+  .fold.collapsed > h3::after{transform:rotate(-90deg)}
+  .fold.collapsed > .blockbody{display:none}
 
   /* ══ 단일행 입력 ══ */
   .field{display:block;width:100%;font:inherit;font-size:14px;color:var(--ink);line-height:1.6;
@@ -131,18 +166,26 @@
 
   /* ══ 타임테이블 ══ */
   table.tt{width:100%;border-collapse:collapse;table-layout:fixed}
-  table.tt th,table.tt td{border:1px solid var(--line-soft);padding:0;vertical-align:top}
-  table.tt thead th{background:#F0F4F8;font-size:12.5px;font-weight:700;color:var(--muted);padding:7px 0;text-align:center}
-  table.tt tbody th{background:#F0F4F8;font-size:14px;font-weight:800;color:var(--navy);width:48px;text-align:center;padding:8px 0;vertical-align:middle}
-  table.tt td .fw .disp{min-height:42px;border-radius:0;padding:9px 8px}
-  table.tt td .field{border-radius:0;padding:9px 8px}
-  table.tt td .t{font-size:13.5px} table.tt td .d{font-size:13px;padding-left:12px}
-  table.tt td .d::before{top:8px}
-  tr.past > th{color:var(--faint);background:#F6F8FA}
-  tr.past td{background:#FCFDFE}
-  tr.nowrow td{background:#FFFBF2}
-  tr.nowrow > th{background:var(--amber-strong);color:#fff}
+  table.tt th,table.tt td{padding:0;vertical-align:top;border:none;border-bottom:1px solid #E4EAF1}
+  table.tt td + td,table.tt thead th + th{border-left:1px solid #F0F4F8}
+  table.tt tbody th{border-right:1px solid #DDE4EC}
+  table.tt tbody tr:last-child th,table.tt tbody tr:last-child td{border-bottom:none}
+  table.tt thead th{background:transparent;font-size:11.5px;font-weight:700;color:var(--faint);padding:5px 0 7px;text-align:center;border-bottom:1px solid #DDE4EC}
+  table.tt tbody th{background:transparent;font-size:13px;font-weight:800;color:var(--navy);width:44px;text-align:center;padding:8px 0;vertical-align:middle}
+  table.tt td .fw .disp{min-height:40px;border-radius:0;padding:8px 8px}
+  table.tt td .field{border-radius:0;padding:8px 8px;font-size:12.5px;line-height:1.55}
+  table.tt td .t{font-size:12.5px;font-weight:700;line-height:1.4}
+  table.tt td .d{font-size:12px;color:var(--muted);padding-left:0;margin-top:2px;line-height:1.45}
+  table.tt td .d::before{display:none}
+  table.tt td .t + .t{margin-top:5px}
+
+  tr.past > th{color:#A6B2C1}
+  tr.past td .t{color:#7B8797;font-weight:600}
+  tr.past td .d{color:#9AA6B5}
+  tr.nowrow td{background:#FFFAF0}
+  tr.nowrow > th{color:var(--amber);font-size:13.5px}
   td.now{background:var(--amber-bg)!important;box-shadow:inset 0 0 0 2px var(--amber-strong)}
+  td.now .t{color:#6E4708}
 
   /* ══ 리스트 ══ */
   .rows{display:flex;flex-direction:column;gap:7px}
@@ -228,16 +271,16 @@
 <div class="boardwrap"><div class="board">
 
   <!-- ══════ A ══════ -->
-  <section class="col">
+  <section class="col side">
     <h2><em>A</em>전체 현황과 경영 요약</h2>
     <div class="colbody">
-      <div class="block intro">
-        <h3>1. 작업 배경 및 목적</h3>
+      <div class="block intro fold collapsed">
+        <h3>1. 작업 배경 및 목적 <span class="hint">눌러서 펼치기</span></h3>
         <div class="blockbody"><div id="f_purpose"></div></div>
       </div>
 
-      <div class="block intro">
-        <h3>2. AI 운영 시스템이 하는 일 <span class="hint">베타 운영 중 · 팀별 업무 맞춤 커스텀 가능</span></h3>
+      <div class="block intro fold collapsed">
+        <h3>2. AI 운영 시스템이 하는 일 <span class="hint">눌러서 펼치기</span></h3>
         <div class="blockbody">
           <div id="f_aiintro"></div>
           <div class="teams" id="teamRows"></div>
@@ -270,14 +313,14 @@
   </section>
 
   <!-- ══════ B ══════ -->
-  <section class="col">
+  <section class="col main">
     <h2><em>B</em>일일 업무와 다음 계획</h2>
     <div class="colbody">
-      <div class="block">
+      <div class="block key">
         <h3>현재 진행 업무 설명 <span class="hint" id="lbl0"></span></h3>
         <div class="blockbody"><div id="f_note"></div></div>
       </div>
-      <div class="block">
+      <div class="block key">
         <h3>일일 업무 기록 <span class="hint" id="lbl2"></span></h3>
         <div class="blockbody"><div class="rows" id="doneRows"></div><button class="add" data-add="done">+ 업무 기록 추가</button></div>
       </div>
@@ -294,7 +337,7 @@
   </section>
 
   <!-- ══════ C ══════ -->
-  <section class="col">
+  <section class="col side">
     <h2><em>C</em>일일 업무 캘린더</h2>
     <div class="colbody">
       <div class="block"><div class="blockbody">
@@ -334,6 +377,15 @@ function parse(ds){const[y,m,d]=ds.split("-").map(Number);return new Date(y,m-1,
 function note(t){document.getElementById("saveState").textContent=t;}
 function korDate(ds){const[,m,d]=ds.split("-");return Number(m)+"월 "+Number(d)+"일";}
 
+/* ═══ 시간 제한이 있는 통신 ═══ */
+function fetchT(url,opts,ms){
+  opts=opts||{}; ms=ms||12000;
+  const ac=new AbortController();
+  const timer=setTimeout(()=>ac.abort(),ms);
+  return fetch(url,Object.assign({},opts,{signal:ac.signal}))
+    .finally(()=>clearTimeout(timer));
+}
+
 /* ═══ 알림 배너 ═══ */
 function showBanner(kind,msg,detail,buttons){
   const b=document.getElementById("banner");
@@ -367,24 +419,41 @@ function editKey(){
   if(!k){ k=prompt("입력 비밀번호를 넣어주세요."); if(k) sessionStorage.setItem("bm2key",k); }
   return k;
 }
+var LOADED=false;   /* 서버에서 제대로 불러왔는가 */
 async function loadAll(){
   note("불러오는 중…");
   try{
-    const r=await fetch("/api/data",{cache:"no-store"});
-    const j=await r.json();
+    const r=await fetchT("/api/data",{cache:"no-store"},12000);
+    let j={}; try{ j=await r.json(); }catch(e){}
+    if(!r.ok) throw new Error(j.detail||j.error||("HTTP "+r.status));
     PLAN=Object.assign(blankPlan(), j.plan||{});
     MONTHDATA=j.months||{}; UPDATED=j.updatedAt||null;
-    note("");
+    LOADED=true; note("");
     checkLocalNewer();
     return true;
   }catch(e){
-    note("불러오기 실패");
+    LOADED=false;
+    const why = (e&&e.name==="AbortError") ? "저장소가 12초 안에 응답하지 않았습니다." : String(e&&e.message||e);
     const local=readLocal();
     if(local&&local.plan){
-      showBanner("warn",
-        "서버에서 불러오지 못해 <b>이 브라우저에 남아 있던 사본</b>을 띄웠습니다. 저장하기 전에 내용을 확인해 주세요.",
-        null,[]);
       PLAN=Object.assign(blankPlan(), local.plan); MONTHDATA=local.months||{};
+      note("서버 불러오기 실패");
+      showBanner("warn",
+        "<b>서버에서 불러오지 못했습니다.</b> 이 브라우저에 남아 있던 "+
+        new Date(local.savedAt).toLocaleString("ko-KR")+" 사본을 대신 띄웠습니다.<br>"+
+        "덮어쓰기를 막기 위해 <b>자동 저장을 잠갔습니다.</b> 내용을 확인한 뒤 저장하세요.",
+        why,
+        [{label:"백업 내려받기",on:doExport},
+         {label:"다시 불러오기",on:async()=>{hideBanner();await loadAll();redrawAll();}},
+         {label:"이 내용으로 저장",on:()=>{hideBanner();LOADED=true;flush();}}]);
+    }else{
+      note("서버 불러오기 실패");
+      showBanner("err",
+        "<b>서버에서 불러오지 못했고 이 브라우저에 사본도 없습니다.</b> "+
+        "빈 화면을 저장하면 기존 기록이 지워지므로 <b>저장을 잠갔습니다.</b><br>"+
+        "잠시 뒤 다시 불러오거나, 백업 파일이 있으면 가져오기로 복구하세요.",
+        why,
+        [{label:"다시 불러오기",on:async()=>{hideBanner();await loadAll();redrawAll();}}]);
     }
     return false;
   }
@@ -408,7 +477,8 @@ function checkLocalNewer(){
 let saveTimer=null;
 function queueSave(){
   if(!EDIT) return;
-  saveLocal();
+  saveLocal();                      /* 사본은 항상 남긴다 */
+  if(!LOADED){ note("저장 잠김"); return; }
   note("입력 중…");
   clearTimeout(saveTimer); saveTimer=setTimeout(()=>flush(),1500);
 }
@@ -417,12 +487,17 @@ async function flush(attempt){
   attempt=attempt||1;
   clearTimeout(saveTimer); saveTimer=null;
   saveLocal();
+  if(!LOADED){
+    note("저장 잠김");
+    showBanner("warn","서버에서 내용을 제대로 불러오지 못한 상태라 저장을 막고 있습니다. 위 배너에서 <b>이 내용으로 저장</b>을 눌러야 저장됩니다.",null,[]);
+    return;
+  }
   const k=editKey(); if(!k){ note("저장 안 됨"); return; }
   note(attempt>1 ? "다시 시도 중… ("+attempt+"/4)" : "저장 중…");
   try{
-    const r=await fetch("/api/data",{method:"POST",
+    const r=await fetchT("/api/data",{method:"POST",
       headers:{"Content-Type":"application/json","x-edit-key":k},
-      body:JSON.stringify({plan:PLAN,months:MONTHDATA})});
+      body:JSON.stringify({plan:PLAN,months:MONTHDATA})},15000);
     let j={}; try{ j=await r.json(); }catch(e){}
     if(!r.ok){
       if(r.status===401){
@@ -457,7 +532,7 @@ async function flush(attempt){
     showBanner("err",
       "<b>서버에 연결하지 못했습니다.</b> 입력한 내용은 이 브라우저에 남아 있습니다. "+
       "인터넷 연결을 확인한 뒤 다시 시도하거나, 백업 파일로 보관해 주세요.",
-      String(e&&e.message||e),
+      (e&&e.name==="AbortError") ? "저장소가 15초 안에 응답하지 않았습니다." : String(e&&e.message||e),
       [{label:"백업 내려받기",on:doExport},
        {label:"다시 저장 시도",on:()=>{hideBanner();flush();}}]);
   }
@@ -484,7 +559,7 @@ function wireBackupButtons(){
           const j=JSON.parse(rd.result);
           if(!j.plan) throw new Error("plan 항목이 없습니다");
           PLAN=Object.assign(blankPlan(), j.plan); MONTHDATA=j.months||{};
-          redrawAll(); saveLocal();
+          LOADED=true; redrawAll(); saveLocal();
           showBanner("ok","백업 파일을 불러왔습니다. 내용을 확인한 뒤 <b>지금 저장</b>을 눌러 서버에 반영하세요.",null,
             [{label:"바로 저장",on:()=>{hideBanner();flush();}}]);
         }catch(err){
@@ -802,6 +877,10 @@ function redrawAll(){
   buildTT(); renderDay(); renderRows("support"); buildCal(); recalc(); renderRecap();
   scheduleGrow();
 }
+
+document.querySelectorAll(".fold > h3").forEach(h=>{
+  h.onclick=()=>{ h.parentElement.classList.toggle("collapsed"); scheduleGrow(); };
+});
 
 document.getElementById("btnToday").onclick=()=>selectDate(todayStr());
 document.getElementById("dateSel").onchange=e=>{if(e.target.value)selectDate(e.target.value);};
