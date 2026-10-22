@@ -189,6 +189,19 @@
   body.view .empty{color:#A5B1BF}
 
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  .capability-guide{font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 14px}
+  .capability-card{border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px;background:var(--wash)}
+  .capability-head{display:flex;gap:7px;align-items:flex-start}
+  .capability-name{font-size:15px;font-weight:800;flex:1;min-width:0;padding:3px 4px;line-height:1.45}
+  .capability-state,.capability-badge{font:inherit;font-size:10.5px;line-height:1.6;font-weight:700;
+    color:var(--accent-deep);background:var(--accent-bg);border:1px solid var(--accent-line);border-radius:5px;
+    padding:4px 5px;white-space:nowrap;flex-shrink:0;margin-top:1px;max-width:110px}
+  .capability-state:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .capability-environment{font-size:11.5px;font-weight:600;color:var(--accent-deep);padding:4px;margin:5px 0}
+  .capability-detail{font-size:12.5px;color:var(--ink-2);padding:4px;line-height:1.7}
+  body.view .capability-card{background:#fff}
+
 </style>
 </head>
 <body>
@@ -272,8 +285,12 @@
         <div class="cal" id="cal"></div>
       </div></div>
       <div class="block recap">
-        <h3 id="recapTitle">진행 내역</h3>
-        <div class="blockbody"><div id="recap"></div></div>
+        <h3>현재 사용 가능한 기능 <span class="hint" id="capabilityDate"></span></h3>
+        <div class="blockbody">
+          <p class="capability-guide">선택한 날짜에 확인된 기능과 사용 환경입니다. 운영 적용 여부는 각 항목의 확인 범위를 참고하세요.</p>
+          <div id="capabilities"></div>
+          <button class="add" id="addCapability">+ 기능 추가</button>
+        </div>
       </div>
     </div>
     <div class="colfoot">달력에서 날짜를 누르면 그 날의 기록이 표시됩니다</div>
@@ -287,7 +304,7 @@ var VIEW = !EDIT;
 
 const MONTHS=[7,8,9,10,11,12];
 const blankPlan=()=>({open:"",summary:"",tt:{},support:[],purpose:"",aiIntro:"",aiTeams:[]});
-const blankDay =()=>({done:[],note:"",next:[],risk:""});
+const blankDay =()=>({done:[],note:"",next:[],risk:"",capabilities:[]});
 let PLAN=blankPlan(), MONTHDATA={}, UPDATED=null, LOADED=false;
 let sel=todayStr(), calCursor=sel.slice(0,7);
 
@@ -447,7 +464,7 @@ function day(ds){
 function peek(ds){const mk=mkey(ds);return (MONTHDATA[mk]&&MONTHDATA[mk][ds])||null;}
 function hasRecord(r){
   if(!r) return false;
-  return (r.done||[]).some(x=>x.text)||(r.next||[]).some(x=>x.text)||!!(r.note||"").trim()||!!(r.risk||"").trim();
+  return (r.done||[]).some(x=>x.text)||(r.next||[]).some(x=>x.text)||!!(r.note||"").trim()||!!(r.risk||"").trim()||(r.capabilities||[]).some(x=>x.name||x.detail);
 }
 
 function paintRich(box,text){
@@ -603,45 +620,51 @@ function shiftMonth(n){
 }
 
 function renderRecap(){
-  const box=document.getElementById("recap"); box.innerHTML="";
-  document.getElementById("recapTitle").textContent=korDate(sel)+" 진행 내역";
-  const r=peek(sel);
-  if(!hasRecord(r)){box.innerHTML='<div class="empty">이 날은 기록된 내용이 없습니다.</div>';return;}
-  const sec=(label,cls)=>{
-    const s=document.createElement("div"); s.className="dsec";
-    const l=document.createElement("div"); l.className="lb"+(cls?" "+cls:""); l.textContent=label;
-    s.appendChild(l); box.appendChild(s); return s;
-  };
-  if((r.note||"").trim()){
-    const s=sec("진행 업무 설명");
-    const b=document.createElement("div"); paintRich(b,r.note); s.appendChild(b);
+  const box=document.getElementById("capabilities");box.replaceChildren();
+  document.getElementById("capabilityDate").textContent=korDate(sel);
+  const record=peek(sel),items=Array.isArray(record?.capabilities)?record.capabilities:[];
+  if(!items.length){
+    const empty=document.createElement("div");empty.className="empty";
+    empty.textContent="이 날짜에 등록된 기능 현황이 없습니다.";
+    box.appendChild(empty);return;
   }
-  const done=(r.done||[]).filter(x=>x.text);
-  if(done.length){
-    const s=sec("수행한 업무 "+done.length+"건");
-    done.forEach(x=>{
-      const it=document.createElement("div"); it.className="ditem";
-      if(x.state){const st=document.createElement("span");st.className="st "+x.state;st.textContent=x.state;it.appendChild(st);}
-      if(x.who){const w=document.createElement("span");w.className="who";w.textContent=x.who;it.appendChild(w);}
-      const bd=document.createElement("div"); bd.className="bd"; paintRich(bd,x.text);
-      it.appendChild(bd); s.appendChild(it);
-    });
-  }
-  const nx=(r.next||[]).filter(x=>x.text);
-  if(nx.length){
-    const s=sec("다음 작업 예정");
-    nx.forEach(x=>{
-      const it=document.createElement("div"); it.className="ditem";
-      if(x.who){const w=document.createElement("span");w.className="who";w.textContent=x.who;it.appendChild(w);}
-      const bd=document.createElement("div"); bd.className="bd"; paintRich(bd,x.text);
-      it.appendChild(bd); s.appendChild(it);
-    });
-  }
-  if((r.risk||"").trim()){
-    const s=sec("막힌 점 · 위험요소","warn");
-    const b=document.createElement("div"); paintRich(b,r.risk); s.appendChild(b);
-  }
+  const states=["연결 확인","개발 화면 확인","개발몰 확인","운영 확인","확인 필요"];
+  items.forEach((item,index)=>{
+    const card=document.createElement("article");card.className="capability-card";
+    const head=document.createElement("div");head.className="capability-head";
+    const name=document.createElement("textarea");name.className="field capability-name";name.rows=1;
+    name.placeholder="기능 이름";name.setAttribute("aria-label","기능 이름");
+    bindField(name,()=>item.name,v=>{item.name=v;});head.appendChild(name);
+    if(EDIT){
+      const state=document.createElement("select");state.className="capability-state";state.setAttribute("aria-label","확인 상태");
+      const choices=states.includes(item.state)?states:[...states,item.state||"확인 필요"];
+      [...new Set(choices)].forEach(value=>{const option=document.createElement("option");option.value=option.textContent=value;state.appendChild(option);});
+      state.value=item.state||"확인 필요";
+      state.onchange=()=>{item.state=state.value;queueSave();};head.appendChild(state);
+      const remove=document.createElement("button");remove.type="button";remove.className="del";remove.textContent="×";
+      remove.title="기능 항목 삭제";remove.setAttribute("aria-label","기능 항목 삭제");
+      remove.onclick=()=>{items.splice(index,1);queueSave();renderRecap();};head.appendChild(remove);
+    }else{
+      const state=document.createElement("span");state.className="capability-badge";state.textContent=item.state||"확인 필요";head.appendChild(state);
+    }
+    card.appendChild(head);
+    const environment=document.createElement("textarea");environment.className="field capability-environment";environment.rows=1;
+    environment.placeholder="확인한 환경";environment.setAttribute("aria-label","확인한 환경");
+    bindField(environment,()=>item.environment,v=>{item.environment=v;});card.appendChild(environment);
+    const detail=document.createElement("textarea");detail.className="field capability-detail";detail.rows=2;
+    detail.placeholder="사용 가능한 기능과 확인 범위";detail.setAttribute("aria-label","사용 가능한 기능과 확인 범위");
+    bindField(detail,()=>item.detail,v=>{item.detail=v;});card.appendChild(detail);box.appendChild(card);
+  });
+  scheduleGrow();
 }
+document.getElementById("addCapability").onclick=()=>{
+  if(!EDIT)return;
+  const record=day(sel);
+  if(!Array.isArray(record.capabilities))record.capabilities=[];
+  record.capabilities.push({name:"",state:"확인 필요",environment:"",detail:""});
+  renderRecap();queueSave();
+  document.querySelector(".capability-card:last-child .capability-name")?.focus();
+};
 
 function recalc(){
   const D=day(sel);
